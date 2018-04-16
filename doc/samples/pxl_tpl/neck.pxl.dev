@@ -1,0 +1,89 @@
+
+  BBBBBBBBB                    
+ BBB0BBBB0BBBBBBBBBBBBBBBBBB   
+ BBBBBBBB0BBBBBBBBBBBBBBBBBBB  
+ BBB0BBBBBBBBBBBBBBBBBBBBBBBB  
+  BBBBBBBBB             BBBBB  
+
+                                          BBBBBBBBB   
+                         BBBBBBBBBBBBBBBBBB0BBBB0BBB  
+                        BBBBBBBBBBBBBBBBBBB0BBBBBBBB  
+                        BBBBBBBBBBBBBBBBBBBBBBBB0BBB  
+                        BBBBB             BBBBBBBBB   
+                             
+                               
+                       BBBBBBB 
+                      BBBBBBBBB
+                      BB0BBB0BB
+                      BBBBBBBBB
+                      BBBBBBBBB
+                       BB000BB 
+                        BBBBB  
+                        BBBBB  
+                        BBBBB  
+                        BBBBB  
+                        BBBBB  
+
+
+CC444446666CCC44444666
+  CCC444444.6666CCCCC6666
+     CCCCCC44446666CCCCC666
+          CCCCCCC44446666
+{{
+  " License is CC-0 public domain
+  " Neck : you was hitten by a radioactive substante on your neck which make it longer, and longer,
+  " but how many time will you survive in this little house
+set ft=pxl
+cal bot#BackupSearch()
+"let l:lineend=line('$')
+let l:sprites={'left': getline(2,6), 'cloud':getline(28,31),'right': getline(8,12), 'up': getline(15,25) }
+
+let l:neck = bot#newSprite(l:sprites['up'],-25)
+let l:cloud = bot#newSprite(l:sprites['cloud'],0)
+
+" let l:dir=a:file
+call bot#newBackground(110,25,'0')
+call bot#fill(1,1,108,23,'7')
+call bot#fill(1,1,108,8,'F')
+call l:cloud.paste(3,3)
+call l:cloud.paste(23,3)
+redraw
+let l:i=0
+while l:i < 100
+for l:j in [0,1,2,3,2,1]
+  silent! call l:neck.placeBase(4+l:i, 20+l:j)
+  redraw
+  sleep 40ms
+  let l:i+=1
+endfor
+endwhile
+" call append(line('$')+1,l:orig_img)
+redraw
+sleep 2
+
+" Proceed the animation
+"let b:nbl=22
+"try
+" for b:j in []
+   " Clear
+"   redraw
+"     let l:ch=getchar(0)
+"     if l:ch
+"       let l:ch = nr2char(l:ch)
+"       if l:ch == 'q'
+"         throw 'quit'
+"       endif
+"     endif
+" endfor
+"catch
+" echo 'quit'
+"endtry
+
+" Restore original search
+cal bot#RestoreSearch()
+" Quit
+q
+" set commentstring="%s
+" set comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
+" vim : commentstring="%s : comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
+}}

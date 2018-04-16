@@ -1,0 +1,45 @@
+{{
+  " License is CC-0 public domain
+}}
+                    00    000                  
+                   07400003740                  
+                  0797343479740   Pause ?        
+                  0799777799740                   
+                  0797777779730
+                  047707707730                      
+                  047770077740
+                   0487777730                         
+                    04877730   
+                   0488877730{{'   ' {<<} b:tail[0] }}                        
+                   048...7730{{'   ' {<<} b:tail[1] }}
+                  04888877773{{'0  ' {<<} b:tail[2] }}                          
+                 04848844773780                            
+                  004880077300                              
+                    000  000                                        
+088777F\{{strftime("Il est %Hh%M; on est le %A %e %B",localtime())}}\.777880
+{{
+" Proceed the animation
+let l:tails=[['30 ', '30 ', '0  '],[' 30', '30 ', '0  '],[' 00', '033', '3  '],[' 30', '30 ', '0  ']]
+let l:cnt=0
+try
+ for l:j in range(40)
+     let b:tail=l:tails[l:cnt%4]
+     let l:cnt+=1
+     call render#Dj_update(b:updater)
+     redraw
+     sleep 250ms
+     let l:ch=getchar(0)
+     if l:ch
+       let l:ch = nr2char(l:ch)
+       if l:ch == 'q'
+         throw 'quit'
+       elseif l:ch == 'n'
+         break
+       endif
+     endif
+ endfor
+catch
+ echo 'quit'
+endtry
+q
+}}

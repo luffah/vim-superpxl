@@ -1,0 +1,81 @@
+{{
+  " License is CC-0 public domain
+}}
+  BBBBBBB 
+ BBBBBBBBB
+ BB0BBB0BB
+ BBBBBBBBB
+ BBBBBBBBB
+  BB000BB 
+   BBBBB  
+   BBBBF  
+   FBBBB 
+   BBBBBB 
+   BB     
+
+  BBBBBBB 
+ BBBBBBBBB
+ BB0BBB0BB
+ BBBBBBBBB
+ BBBBBBBBB
+  BB000BB 
+   BBBBB  
+   BBBBB  
+   FBBBF  
+   BBBBB  
+   BB BB  
+
+  BBBBBBB 
+ BB0BBB0BB
+ BB0BBB0BB
+ BBBBBBBBB
+ BB0BBB0BB
+  BB000BB 
+   BBBBB  
+   FBBBF  
+   BBBBB  
+   BBBBB  
+   BB BB  
+{{
+cal bot#BackupSearch()
+"let l:lineend=line('$')
+let l:sprites={'a': getline(1,11), 'b': getline(13,23), 'c': getline(25,35)}
+
+let l:neck = bot#newSprite(l:sprites['a'],-2)
+let l:width = winwidth('%')
+" let l:dir=a:file
+call bot#newBackground(l:width,25,'0')
+call bot#fill(1,1,l:width/3,23,'7')
+redraw
+let l:i=0
+while l:i < l:width - 10
+  for l:j in [0,1,2,3,2,1]
+    call l:neck.placeBase(l:i, 21+l:j)
+    redraw
+    sleep 42ms
+    let l:i+=1
+    if (l:i/6 == 5) || l:i >= (l:width - 12)
+      call l:neck.changePic(l:sprites['c'])
+    elseif l:j == 0
+      call l:neck.changePic(l:sprites['b'])
+    elseif l:j == 3
+      call l:neck.changePic(l:sprites['a'])
+    endif
+    if l:i > l:width - 10
+      break
+    endif
+  endfor
+endwhile
+redraw
+
+sleep 2
+
+" Restore original search
+cal bot#RestoreSearch()
+" Quit
+q
+"qa!
+" set commentstring="%s
+" set comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
+" vim : commentstring="%s : comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
+}}
