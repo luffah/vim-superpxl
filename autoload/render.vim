@@ -11,7 +11,7 @@
 "   call render#Dj_update(updater)
 "=======================================================
 if exists('g:loaded_dj_render_plugin') || &compatible
-    finish
+    "finish
 endif
 let g:loaded_dj_render_plugin = 1
 
@@ -35,11 +35,11 @@ fu! render#Dj(pos,tpl,...)
     for l:v in l:substitutes
       let l:l=substitute(l:l,l:v[0],l:v[1],l:v[2])
     endfor
-    if (match(l:l, '^{{')==0)
+    if (match(l:l, '^"\?{{')==0)
       let l:ignore_lines=1
       continue
     elseif l:ignore_lines
-      if (match(l:l, '^}}')==0)
+      if (match(l:l, '^"\?}}')==0)
         let l:ignore_lines=0
       else
         call add(s:dj_last_pass_ignored_lines, l:l)
@@ -128,7 +128,8 @@ fu! render#Dj_getIgnoredLines()
   return s:dj_last_pass_ignored_lines
 endfu
 
-fu! render#Dj_playAnimation(file)
+fu! render#Dj_playAnimation(file,...)
+  cal bot#BackupSearch()
   tabnew
   noh
   call clearmatches()
@@ -152,7 +153,7 @@ fu! render#Dj_playAnimation(file)
   setlocal lazyredraw
   setlocal nofoldenable
   let b:updater=render#Dj(1,readfile(a:file))
-  let l:post_process_lines=render#Dj_getIgnoredLines()
+  let l:_post_process_lines=render#Dj_getIgnoredLines()
   exe 'set ft='.split(a:file,'\.')[-1]
   exe 'resize '.line('$')
   redraw
@@ -172,7 +173,40 @@ fu! render#Dj_playAnimation(file)
     augroup END
     setlocal t_ve=
   endif
-  exe join(filter(l:post_process_lines,{idx, val -> val !~ '^\s*"'}),"\n")
+  let l:_post_process_lines=filter(l:_post_process_lines,{idx, val -> val !~ '^\s*".*'})
+
+  try
+    let l:i = 0
+    while l:i < len(l:_post_process_lines)
+       if l:_post_process_lines[l:i]=~'^\s*\\\s*'
+          let l:_post_process_lines[l:i-1].=substitute( remove(l:_post_process_lines,l:i),'^\s*\\\s*','','')
+       else
+         let l:i+=1
+       endif
+    endwhile
+    exe "function! s:_current_process()\n".join(l:_post_process_lines,"\n")."\n endfunction"
+    let b:_script_lines=l:_post_process_lines
+    call s:_current_process()
+  catch
+    echo v:exception
+    echo " - at - " . v:throwpoint
+    if v:throwpoint =~ '.*__current_process, \a\+ \d\+'
+      let l:nu=str2nr(substitute(v:throwpoint,'^.*__current_process, \a\+ \(\d\+\)','\1',''))
+      if l:nu > 1
+        echo l:nu-1.' '.b:_script_lines[l:nu-2]
+      endif
+      if l:nu > 0
+        echo l:nu.' '.b:_script_lines[l:nu-1]
+      endif
+      echo l:nu+1.' '.b:_script_lines[l:nu]
+      if l:nu < len(b:_script_lines)
+        echo l:nu+2.' '.b:_script_lines[l:nu+1]
+      endif
+    endif
+    cal bot#RestoreSearch()
+    call getchar()
+  endtry
+  cal bot#RestoreSearch()
 endfu
 
 fu! render#Dj_update(up)

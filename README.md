@@ -12,6 +12,19 @@ The origin of this pack is in the boring chronometer of the pomodoro technique.
 I wanted a Vim-centered solution with a pinch of fun to make me stop working,
 while others pomodoro applications was just another process to kill.
 
+## Installation + A simple game example
+
+Get Vim installed on your computer.
+
+Copy `superpxl` folder to `.vim/pack/start/superpxl`.
+
+Start Vim.
+
+```
+:e ~/.vim/pack/start/superpxl/doc/samples/pxl_tpl/human.pxl
+:so %
+```
+
 ## Features
 * Pixel art editor
 * Sprites

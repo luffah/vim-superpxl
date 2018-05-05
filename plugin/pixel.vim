@@ -1,4 +1,3 @@
-" nmap \fR :Mirror<CR>
 "  symbol -> guicolor, termcolor, hexAABBGGRR, guitext, termtext
 let s:AsciiMirrorTr={
       \'/' : '\',
@@ -97,7 +96,30 @@ fu! s:Iter(linefu,start,end, dict)
   endif
 endfu
 
+fu! pixel#def(name,w,color,num)
+  exe 'syn match '.a:name.a:w.' /'.a:w.'\C\.*/'
+  exe 'hi '.a:name.a:w
+        \.' guibg='.a:color.' guifg='.a:color
+        \.' ctermfg='.a:num.' ctermbg='.a:num 
+endfu
 
+fu! pixel#Mirror(lines)
+  let l:ret=[]
+  let l:maxw=max(map(copy(a:lines),'len(v:val)'))
+  for l:l in a:lines
+    call add(l:ret,repeat(" ",l:maxw-len(l:l)).join(reverse(split(l:l, '\zs')),''))
+  endfor
+  return l:ret
+endfu
+
+fu! pixel#AsciiMirror(lines)
+  let l:ret=[]
+  let l:maxw=max(map(copy(a:lines),'len(v:val)'))
+  for l:l in a:lines
+    call add(l:ret,s:MirrorFun(l:l.repeat(" ",l:maxw-len(l:l)),s:AsciiMirrorTr))
+  endfor
+  return l:ret
+endfu
 
 if has('python3')
   let s:pyfile = 'py3file'
@@ -124,7 +146,7 @@ if exists('s:python')
     if l:fname !~ '\.png$'
       let l:fname .= '.png'
     endif
-
+    
     if s:python == 'python3'
     python3 << _EOF_
 import vim
@@ -147,7 +169,7 @@ _EOF_
     return l:fname
   endfu
 
- fu! pixel#ImportPNG(preserve_ratio,maxwidth,png,...)
+ fu! pixel#ImportPNG(preserve_ratio,allow_alteration,maxwidth,png,...)
     let l:method="nearest_color_hsl"
     if len(a:000)>0
       let l:method=a:000[0]
@@ -159,28 +181,32 @@ b = vim.current.buffer
 fpath = vim.eval("a:png")
 limit = vim.eval("a:png")
 factor = 1 + int(vim.eval('a:preserve_ratio'))
-maxwidth = int(vim.eval('a:maxwidth'))
+factormode = int(vim.eval('a:allow_alteration'))
+maxwidth = vim.eval('a:maxwidth')
 method = vim.eval('l:method')
 if method == "noauto":
-  b.vars['_import_png_pxl_lines']=import_png(fpath,maxwidth,trpix2chr,COLORTOCHR,factor)
+  b.vars['_import_png_pxl_lines']=import_png(fpath,maxwidth,trpix2chr,COLORTOCHR,factor,factormode)
 else:
   func=globals()[method]
   colormap = {k: tuple(map(lambda a: int(a), v[2])) for k, v in vim.eval('g:pxl_colormap').items()}
-  b.vars['_import_png_pxl_lines']=import_png(fpath,maxwidth,func, colormap,factor)
+  b.vars['_import_png_pxl_lines']=import_png(fpath,maxwidth,func, colormap,factor,factormode)
 _EOF_
     else
     python << _EOF_
 b = vim.current.buffer
 fpath = vim.eval("a:png")
 factor = 1 + int(vim.eval('a:preserve_ratio'))
-maxwidth = int(vim.eval('a:maxwidth'))
+factormode = int(vim.eval('a:allow_alteration'))
+maxwidth = vim.eval('a:maxwidth')
 method = vim.eval('l:method')
 if method == "noauto":
-  b.vars['_import_png_pxl_lines']=import_png(fpath,maxwidth,trpix2chr,COLORTOCHR,factor)
+  b.vars['_import_png_pxl_lines']=import_png(fpath,maxwidth,trpix2chr,COLORTOCHR,factor,factormode)
 else:
   func=globals()[method]
-  colormap = {k: tuple(map(lambda a: int(a), v[2])) for k, v in vim.eval('g:pxl_colormap').items()}
-  b.vars['_import_png_pxl_lines']=import_png(fpath,maxwidth,func, colormap,factor)
+  colormap = {
+        \k: tuple(map(lambda a: int(a), v[2]))
+        \ for k, v in vim.eval('g:pxl_colormap').items()}
+  b.vars['_import_png_pxl_lines']=import_png(fpath,maxwidth,func, colormap,factor,factormode)
 _EOF_
     endif
     let l:ret=b:_import_png_pxl_lines
@@ -190,65 +216,88 @@ _EOF_
 
   "" Completion function for commands
   function! s:_CompletePng(A,L,P)
-    if a:A =~ '/$'
-      let l:file=""
-      let l:dir=a:A
+    if a:L =~ '.*\.\(png\|jpeg\|gif\|jpg\) '
+      let l:methods=[
+            \"nearest_color_hsl2",
+            \"nearest_color_hsl_rgb",
+            \"nearest_color_hsl",
+            \"nearest_color_human",
+            \"nearest_color_rgb332",
+            \"nearest_color_rgb233",
+            \"nearest_color_rgb"]
+      return filter(l:methods, 'v:val =~ "'.a:A.'.*"')
     else
-      let l:path=split(a:A,'/')
-      if a:A =~ '^/'
-        let l:file=remove(l:path,-1)
-        let l:dir="/".(join(l:path,"/"))
-      elseif a:A =~ '^~/'
-        let l:file=remove(l:path,-1)
-        let l:dir=join(l:path,"/")
+      if a:A =~ '/$'
+        let l:file=""
+        let l:dir=a:A
       else
-        let l:dir=getcwd()
-        let l:file=a:A
+        let l:path=split(a:A,'/')
+        if a:A =~ '^/'
+          let l:file=remove(l:path,-1)
+          let l:dir="/".(join(l:path,"/"))
+        elseif a:A =~ '^~/'
+          let l:file=remove(l:path,-1)
+          let l:dir=join(l:path,"/")
+        else
+          let l:dir=getcwd()
+          let l:file=a:A
+        endif
       endif
+      return filter(map(globpath(l:dir, l:file.'*\c', 1, 1),
+            \'v:val.(isdirectory(v:val)?"/":"")'),
+            \'v:val =~ "\\(\\.png\\|\\.jpeg\\|\\.gif\\|\\.jpg\\|/\\)\\c$"')
     endif
-    return filter(map(globpath(l:dir, l:file.'*\c', 1, 1),
-          \'v:val.(isdirectory(v:val)?"/":"")'),
-          \'v:val =~ "\\(\\.png\\|\\.jpeg\\|\\.gif\\|\\.jpg\\|/\\)\\c$"')
   endfunction
   if exists('g:png_editor')
-    command! -bar -complete=file -nargs=? ExportEditPng call system(g:png_editor.' '.pixel#ExportBufferToPNG(1,<q-args>).'&')
+    command! -bar -complete=file -nargs=? ExportEditPng
+          \ call system(g:png_editor.' '.pixel#ExportBufferToPNG(1,<q-args>).'&')
   endif
   if has('mac')
-    command! -bar -complete=file -nargs=? ExportOptnPng call system('open '.pixel#ExportBufferToPNG(1,<q-args>).'&')
+    command! -bar -complete=file -nargs=? ExportOptnPng
+          \ call system('open '.pixel#ExportBufferToPNG(1,<q-args>).'&')
   elseif has('win32')
-    command! -bar -complete=file -nargs=? ExportOpenPng call system(pixel#ExportBufferToPNG(1,<q-args>).'&')
+    command! -bar -complete=file -nargs=? ExportOpenPng
+          \ call system(pixel#ExportBufferToPNG(1,<q-args>).'&')
   else 
-    command! -bar -complete=file -nargs=? ExportOpenPng call system('xdg-open '.pixel#ExportBufferToPNG(1,<q-args>).'&')
+    command! -bar -complete=file -nargs=? ExportOpenPng
+          \ call system('xdg-open '.pixel#ExportBufferToPNG(1,<q-args>).'&')
   endif
-  command! -bar -complete=file -nargs=? ExportToPng exe 'echo "Saved as '.pixel#ExportBufferToPNG(1,<q-args>).'"'
-  
+  command! -bar -complete=file -nargs=? ExportToPng
+        \ exe 'echo "Saved as '.pixel#ExportBufferToPNG(1,<q-args>).'"'
+
   command! -bar -complete=customlist,<SID>_CompletePng -nargs=+ ImportPng
         \ tabnew | set ft=pxl |
-        \ cal setline(1,pixel#ImportPNG(1,get(g:,'pxl_image_maxwidth',399),<f-args>))
-  command! -bar -complete=customlist,<SID>_CompletePng -nargs=+ ImportPngFitted
-        \ tabnew | set ft=pxl |
-        \ cal setline(1,pixel#ImportPNG(1,get(g:,'pxl_image_maxwidth',winwidth('%')),<f-args>))
+        \ cal setline(1,pixel#ImportPNG(1,0,get(g:,'pxl_image_maxwidth',399),<f-args>))
   command! -bar -complete=customlist,<SID>_CompletePng -nargs=+ ImportPngComplete
         \ tabnew | set ft=pxl |
-        \ cal setline(1,pixel#ImportPNG(0,get(g:,'pxl_image_maxwidth',399),<f-args>))
+        \ cal setline(1,pixel#ImportPNG(1,2,'x1',<f-args>))
+  command! -bar -complete=customlist,<SID>_CompletePng -nargs=+ ImportPngFitted
+        \ tabnew | set ft=pxl |
+        \ cal setline(1,
+        \pixel#ImportPNG(1,2,get(g:,'pxl_image_maxwidth',winwidth('%'))/2,<f-args>))
+  command! -bar -complete=customlist,<SID>_CompletePng -nargs=+ ImportPngNoRatioCorrection
+        \ tabnew | set ft=pxl |
+        \ cal setline(1,
+        \pixel#ImportPNG(0,2,get(g:,'pxl_image_maxwidth',399),<f-args>))
 endif
 
 if has('gui')
-function! s:chZoom(nb)
+function! pixel#chZoom(nb)
   let s:guifont=&guifont
   exe 'set guifont='.substitute(substitute(s:guifont,' \d*$',' '.a:nb,''),' ','\\ ','g')
   redraw
 endfu
-function! s:resetZoom()
+function! pixel#resetZoom()
   exe 'set guifont='.substitute(s:guifont,' ','\\ ','g')
   redraw
 endfu
-function! s:bestZoom()
+
+function! pixel#bestZoom()
   let s:guifont=&guifont
+  let l:z=get(g:,'max_font_size',12)
   let l:maxw=max(map(getline(0,line('$')),'len(v:val)'))
-  let l:w=winwidth('%')
-  let l:z=12
   exe 'set guifont='.substitute(substitute(s:guifont,' \d*$',' '.l:z,''),' ','\\ ','g')
+  let l:w=winwidth('%')
   while l:w<l:maxw
     let l:z-=1
     exe 'set guifont='.substitute(substitute(s:guifont,' \d*$',' '.l:z,''),' ','\\ ','g')
@@ -256,11 +305,12 @@ function! s:bestZoom()
   endwhile
   redraw
 endfu
-command! -bar -nargs=1 TmpZoom  cal s:chZoom(<args>) | sleep 2 | cal s:resetZoom()
-command! -bar ZoomReset  cal s:resetZoom()
-command! -bar -nargs=1 Zoom  cal s:chZoom(<args>)
-command! -bar ZoomFitToWindow  cal s:bestZoom()
-command! -bar TmpZoomFitToWindow  cal s:bestZoom() | sleep 2 | cal s:resetZoom()
+
+command! -bar -nargs=1 TmpZoom  cal pixel#chZoom(<args>) | sleep 2 | cal pixel#resetZoom()
+command! -bar ZoomReset  cal pixel#resetZoom()
+command! -bar -nargs=1 Zoom  cal pixel#chZoom(<args>)
+command! -bar ZoomFitToWindow  cal pixel#bestZoom()
+command! -bar TmpZoomFitToWindow  cal pixel#bestZoom() | sleep 2 | cal pixel#resetZoom()
 endif
 
 command! -bar -range AsciiMirror cal s:Iter('s:MirrorFun',<line1>,<line2>, s:AsciiMirrorTr)

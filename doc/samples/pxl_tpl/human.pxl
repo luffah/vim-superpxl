@@ -1,81 +1,296 @@
-{{
+"{{
+  call render#Dj_playAnimation(expand('<sfile>'))
+  finish
   " License is CC-0 public domain
-}}
+  " Todo : in bot.vim autodetect images definitions
+"}}
+--{{ "def neck:head -3 }}
   BBBBBBB 
  BBBBBBBBB
  BB0BBB0BB
  BBBBBBBBB
  BBBBBBBBB
-  BB000BB 
+  BB000BB
+--{{ "def neck:body -3 }}
+   BBBBB  
+   FBBBF  
+   BBBBB  
+   BBBBB  
+   BB BB  
+--{{ "def neck:head smile }}
+  BBBBBBB 
+ BB0BBB0BB
+ BB0BBB0BB
+ BBBBBBBBB
+ BB0BBB0BB
+  BB000BB
+--{{ "def neck:bodymove -3 }}
    BBBBB  
    BBBBF  
    FBBBB 
    BBBBBB 
    BB     
+--{{ "def neck:d -3}}
+  1111111 
+ 11 111 11
+ 1  111  1
+ 111111111
+ 1111 1111
+  11 1 11 
+   11111  
+   11111  
+   11111  
+   11111  
+   11 11  
+--{{ "def coeur:heart }}
+  99  99
+ 99999999
+  999999
+    99 
+"{{
+" redefining syntax from zero enhance performances
+syn clear
+call pixel#def('','B','#FCE94F',11)
+call pixel#def('','0','#000000',0)
+call pixel#def('','7','#555753',7)
+call pixel#def('','8','#393B38',8)
+call pixel#def('','1','#CD0000',1)
+call pixel#def('','F','#EEEEEC',15)
+call pixel#def('','A','#00FF00',10)
+call pixel#def('','9','#FF0000',9)
+" redefining syntax from zero enhance performances
 
-  BBBBBBB 
- BBBBBBBBB
- BB0BBB0BB
- BBBBBBBBB
- BBBBBBBBB
-  BB000BB 
-   BBBBB  
-   BBBBB  
-   FBBBF  
-   BBBBB  
-   BB BB  
+let l:sprites={
+      \ 'coeur':getline(40,43),
+      \ 'head':getline(2,7),
+      \ 'body':getline(9,13),
+      \ 'head_smiling':getline(15,20),
+      \ 'body_moving':getline(22,26),
+      \ 'd': getline(28,38)
+      \}
+let l:sprites.a = l:sprites.head + l:sprites.body_moving
+let l:sprites.b = l:sprites.head + l:sprites.body
+let l:sprites.c = l:sprites.head_smiling + l:sprites.body
+for l:i in keys(l:sprites)
+  let l:sprites[l:i.'r']=pixel#Mirror(l:sprites[l:i])
+endfor
+let l:continue=3
 
-  BBBBBBB 
- BB0BBB0BB
- BB0BBB0BB
- BBBBBBBBB
- BB0BBB0BB
-  BB000BB 
-   BBBBB  
-   FBBBF  
-   BBBBB  
-   BBBBB  
-   BB BB  
-{{
-cal bot#BackupSearch()
-"let l:lineend=line('$')
-let l:sprites={'a': getline(1,11), 'b': getline(13,23), 'c': getline(25,35)}
-
-let l:neck = bot#newSprite(l:sprites['a'],-2)
 let l:width = winwidth('%')
-" let l:dir=a:file
-call bot#newBackground(l:width,25,'0')
-call bot#fill(1,1,l:width/3,23,'7')
-redraw
-let l:i=0
-while l:i < l:width - 10
-  for l:j in [0,1,2,3,2,1]
-    call l:neck.placeBase(l:i, 21+l:j)
-    redraw
-    sleep 42ms
-    let l:i+=1
-    if (l:i/6 == 5) || l:i >= (l:width - 12)
+command -buffer -nargs=* Echo call bot#echof('c',eval(<q-args>),l:width)
+while l:continue
+  call bot#newBackground(l:width,25,'8')
+  call bot#fill(0,24,l:width,1,'0')
+  call bot#pastePixel(0,24,'777')
+  call bot#pastePixel(l:width-3,24,'777')
+  let l:chrono=reltime()
+  let l:neck = bot#newSprite(l:sprites['a'],-3)
+  let l:coeur = bot#newSprite(l:sprites['coeur'],0)
+  let l:all_sprites = [l:neck, l:coeur]
+  let l:mid=l:width/2
+  let l:midmin=l:width/2-10
+  let l:midmax=l:width/2+10
+  let l:wallmax=l:width-10
+  let l:i=l:width/2-l:neck.w
+  let l:inc=1
+  let l:reverse=0
+  let l:inputcnt=0
+  let l:auto=0
+  let l:factor=0
+  let l:factorh=0
+  let l:stepsize=2
+  "let l:totalcnt=0
+  let l:curcoeurx=bot#getRandom(l:width-8)
+  let l:curcoeury=-4
+  try
+    Echo "And left and right ! and again !"
+    while l:i < l:width - 10
+      "let l:totalcnt+=1
+      for l:j in [3,2,1,0,1,2]
+        let l:new_fill=[]
+        let l:new_paste=[]
+        if l:inputcnt == l:stepsize 
+          let l:new_fill=[l:width/2-1,2,1,1,'A']
+        elseif l:inputcnt == 2 * l:stepsize
+          let l:new_fill=[l:width/2,2,1,1,'A']
+        elseif l:inputcnt == 3 * l:stepsize
+          let l:new_fill=[l:width/2,3,1,1,'A']
+        elseif l:inputcnt == 4 * l:stepsize
+          let l:new_fill=[l:width/2-1,3,1,1,'A']
+        elseif l:inputcnt == 5 * l:stepsize
+          let l:new_fill=[l:width/2-2,2,4,2,'A']
+        elseif l:inputcnt == 6 * l:stepsize
+          let l:new_fill=[l:width/2-4,2,8,2,'A']
+        elseif l:inputcnt == 7 * l:stepsize
+          let l:new_fill=[l:width/2-6,2,12,2,'A']
+        elseif l:inputcnt == 8 * l:stepsize
+          let l:new_fill=[l:width/2-8,2,16,2,'A']
+          Echo "==COMPLETE MADNESS=="
+          let l:auto=1
+        elseif l:inputcnt == 9 * l:stepsize
+          let l:new_fill=[l:width/2-12,2,24,2,'A']
+        elseif l:inputcnt == 10 * l:stepsize
+          let l:new_fill=[l:width/2-16,2,32,2,'A']
+          Echo "NnoooooooooOO ! Are you human ?"
+        elseif l:inputcnt == 11 * l:stepsize
+          let l:new_fill=[l:width/2-24,2,48,2,'A']
+        elseif l:inputcnt == 12 * l:stepsize
+          let l:new_fill=[l:width/2-32,2,64,2,'A']
+        elseif l:inputcnt == 20 * l:stepsize
+          let l:factor=2
+          Echo "I siiing in the rain."
+        endif
+        if len(l:new_fill)
+          call map(copy(l:all_sprites),'v:val.clear()')
+          call bot#fill(new_fill[0],new_fill[1],new_fill[2],new_fill[3],new_fill[4])
+        endif 
+        call l:coeur.place(l:curcoeurx,l:curcoeury)
+        call l:neck.placeBase(l:i, 24-((l:j*l:factorh)/2))
+        redraw
+        sleep 31m
+        if l:neck.collide(l:coeur) 
+          throw 'wall'
+        elseif (l:i <= 0)  || (l:i > l:wallmax)
+          throw 'out'
+        elseif (l:factorh > 6) && (l:i >= l:midmin) && (l:i <= l:midmax)
+          if l:factorh*l:j>=20
+            throw 'success'
+          endif
+        endif
+        let l:i+=l:inc*l:factor
+        if l:factor == 0
+          call l:neck.changePic(l:sprites['b'])
+        elseif l:j == 3
+          call l:neck.changePic(l:sprites['b'.(l:reverse?'r':'')])
+        elseif l:j == 0
+          call l:neck.changePic(l:sprites['a'.(l:reverse?'r':'')])
+        endif
+        if l:auto && ((l:inc < 0 && l:i <= l:factor ) || (l:i >= (l:wallmax - l:factor)))
+          let l:inputcnt+=1
+          let l:factor=(1+(l:inputcnt/4))
+          let l:factorh=(1+(l:inputcnt/24))
+          let l:inc=-l:inc
+          let l:reverse=(l:reverse?0:1)
+        endif
+        if l:curcoeury == 24
+          let l:curcoeurx=bot#getRandom(l:width-8)
+          let l:curcoeury=-4
+        elseif l:factor > 4 || l:j == 0
+          let l:curcoeury+=1 
+        endif
+        let l:ch=getchar(0)
+        if !empty(l:ch)
+          let l:factor=(1+(l:inputcnt/4))
+          let l:factorh=(1+(l:inputcnt/24))
+          if l:ch == "\<Left>"
+            let l:inc=-1
+            let l:reverse=1
+            let l:inputcnt+=1
+          elseif l:ch == "\<Right>"
+            let l:inc=1
+            let l:reverse=0
+            let l:inputcnt+=1
+          elseif l:ch == "\<Up>"
+            let l:inputcnt+=1
+          elseif l:ch == "\<Down>"
+            let l:inputcnt=max([l:inputcnt-1,0])
+          else 
+            let l:ch = nr2char(l:ch)
+            if l:ch == 'q'
+              throw 'quit'
+            elseif l:ch=='a'
+              let l:auto=!(l:auto)
+            elseif l:ch=='i'
+              let l:inputcnt+=1
+              let l:inc=-l:inc
+              let l:reverse=(l:reverse?0:1)
+            else
+              throw 'wrongkey'
+            endif
+          endif
+        endif
+      endfor
+    endwhile
+  catch /[a-z]\+/
+    if v:exception == 'quit'
+      echo "quit"
+      let l:continue=0
+    elseif v:exception == 'success'
       call l:neck.changePic(l:sprites['c'])
-    elseif l:j == 0
-      call l:neck.changePic(l:sprites['b'])
-    elseif l:j == 3
-      call l:neck.changePic(l:sprites['a'])
+      call l:neck.redraw()
+      let l:success = bot#newSprite(l:sprites['success'],0)
+      call l:success.placeBaseCentered(l:width/2, 25)
+      redraw
+      Echo 'You succeed to reach next level in '.reltime(l:chrono)[0].' seconds'
+      sleep 4
+      let l:continue=0
+      let l:nextlevel=1
+      call getchar()
+    elseif v:exception == 'wall'
+      call l:neck.changePic(l:sprites['c'])
+      call l:neck.redraw()
+      redraw
+      sleep 200m
+      let l:msg = 'You survived '.reltime(l:chrono)[0].' seconds. But you just fall in love. '
+      let l:l=''
+      for l:i in range(line('$'))
+        exe 'silent! '.l:i.'s/B/1/'
+        redraw
+        sleep 32m
+      endfor
+      for l:i in range(len(l:msg)/3+1)
+        let l:l.=l:msg[l:i*3].l:msg[l:i*3+1].l:msg[l:i*3+2]
+        Echo l:l[:l:width-1]
+        redraw
+        sleep 63m
+      endfor
+      for l:i in range(line('$'))
+        exe 'silent! '.l:i.'s/B/1/g'
+        redraw
+        sleep 32m
+      endfor
+      sleep 600m 
+      sleep 2 
+      let l:continue-=1
+    elseif v:exception == 'out'
+      call l:neck.clear()
+      let l:msg = 'You survived '.reltime(l:chrono)[0].' seconds. But you just fall. '
+      let l:l=''
+      for l:i in range(len(l:msg)/3+1)
+        let l:l.=l:msg[l:i*3].l:msg[l:i*3+1].l:msg[l:i*3+2]
+        Echo l:l[:l:width-1]
+        redraw
+        sleep 63m
+      endfor
+      sleep 600m 
+      sleep 2 
+      let l:continue-=1
+    elseif v:exception == 'wrongkey'
+      call l:neck.changePic(l:sprites['d'])
+      call l:neck.redraw()
+      Echo "You hit the wrong key"
+      redraw
+      sleep 2 
+      Echo 'You survived '.reltime(l:chrono)[0].' seconds'
+      redraw
+      let l:continue-=1
     endif
-    if l:i > l:width - 10
-      break
+  endtry
+  "reinit input
+  while !empty(getchar(0))
+    sleep 100m
+  endwhile
+
+  if l:continue
+    echo "hit 'q' to quit or an another key to continue"
+    if nr2char(getchar()) == 'q'
+      let l:continue=0
     endif
-  endfor
+  else
+    call getchar()
+  endif
 endwhile
-redraw
-
-sleep 2
-
-" Restore original search
-cal bot#RestoreSearch()
 " Quit
 q
-"qa!
-" set commentstring="%s
-" set comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
 " vim : commentstring="%s : comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
-}}
+"}}

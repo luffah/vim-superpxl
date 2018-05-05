@@ -262,7 +262,7 @@ def export_as_png(buf, fname, colormap, factor=2):
     :param buf:
     :param fname:
     :param colormap: a table {pixel char -> rgb values}
-    :param factor: to how many line correspond 1 line (a character is a rectangle 1x2, so you shall set 2 to respect ratio)
+    :param factor: to how many column correspond to 1 column (a character is a rectangle 1x2, so you shall set 2 to have 2x2 or 1x1 ratio)
     """
     img = Image.new('RGBA', (max([len(a) for a in buf]), len(buf) * factor))
     pixels = img.load()
@@ -277,16 +277,18 @@ def export_as_png(buf, fname, colormap, factor=2):
     img.save(fname, 'PNG')
 
 
-def import_png(fpath,  maxwidth, colorfunc=trpix2chr, colordata=COLORTOCHR,
+def import_png(fpath,  maxwidth_str, colorfunc=trpix2chr, colordata=COLORTOCHR,
                factor=1, factormode=0, scale_filter=Image.BILINEAR):
     """import_png
 
     :param fpath:
-    :param maxwidth:
+    :param maxwidth_str:  str convertable to int
+                      = either <number> for an absolute size
+                      or x<number> for image relative size
     :param colorfunc: function which translate pixel to char
     :param colordata: parameter for colorfunc
-    :param factor: to how many line correspond 1 line (a character is a rectangle 1x2, so you shall set 2 to respect ratio)
-    :param factormode: 0 let PIL reduce the image, 1 make it by removing 1 line / 2
+    :param factor:    to how many line correspond 1 line (a character is a rectangle 1x2, so you shall set 2 to respect ratio)
+    :param factormode: 0 let PIL reduce the image; 1 do it by removing 1 line / <factor>; 2 do it by adding <factor> columns
     :param scale_filter: PIL interpolation
        Image.NEAREST      -> use nearest neighbour
        Image.BILINEAR     -> linear interpolation in a 2x2 environment
@@ -300,13 +302,25 @@ def import_png(fpath,  maxwidth, colorfunc=trpix2chr, colordata=COLORTOCHR,
     else:
         print("%s doesn't exists" % fpath)
     width, height = im.size
+    force_resize=False
 
-    if width > maxwidth:
+    if maxwidth_str.startswith('x'):
+        if maxwidth_str == 'x1':
+            maxwidth=width
+        else :
+            force_resize=True
+            maxwidth=int(float(maxwidth_str[1:])*width)
+    else:
+        maxwidth=int(maxwidth_str)
+
+    if width > maxwidth or force_resize:
         height = ((maxwidth / width) * height)
         width = maxwidth
+
     height = int(height + 0.5)
     size = (width, height)
 
+    # reduce picture in height
     if factormode == 0 and factor > 1:
         height = height / factor
         height = int(height + 0.5)
@@ -317,11 +331,20 @@ def import_png(fpath,  maxwidth, colorfunc=trpix2chr, colordata=COLORTOCHR,
 
     width, height = im.size
     pixels = im.load()
-    for j in range(height):
-        ret.append("")
-        for i in range(width):
-            ret[j] += colorfunc(pixels[i, j], colordata)
+    if factor == 1 or factormode != 2:
+        #  set pixel char to be <pixel value>
+        for j in range(height):
+            ret.append("")
+            for i in range(width):
+                ret[j] += colorfunc(pixels[i, j], colordata)
+    else:
+        #  set pixel char to be <factor> time repeated <pixel value>
+        for j in range(height):
+            ret.append("")
+            for i in range(width):
+                ret[j] += colorfunc(pixels[i, j], colordata) * factor
 
+    # take 1 line every <factor> lines
     if factormode == 1 and factor > 1:
         newret = []
         for i in range(0, len(ret) - 1, factor):

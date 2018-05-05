@@ -1,6 +1,6 @@
-{{
+"{{
   " License is CC-0 public domain
-}}
+"}}
                     00    000                  
                    07400003740                  
                   0797343479740   Pause ?        
@@ -17,7 +17,7 @@
                   004880077300                              
                     000  000                                        
 088777F\{{strftime("Il est %Hh%M; on est le %A %e %B",localtime())}}\.777880
-{{
+"{{
 " Proceed the animation
 let l:tails=[['30 ', '30 ', '0  '],[' 30', '30 ', '0  '],[' 00', '033', '3  '],[' 30', '30 ', '0  ']]
 let l:cnt=0
@@ -33,8 +33,6 @@ try
        let l:ch = nr2char(l:ch)
        if l:ch == 'q'
          throw 'quit'
-       elseif l:ch == 'n'
-         break
        endif
      endif
  endfor
@@ -42,4 +40,4 @@ catch
  echo 'quit'
 endtry
 q
-}}
+"}}
