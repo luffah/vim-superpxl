@@ -1,0 +1,51 @@
+"{{
+  call render#Dj_playAnimation(expand('<sfile>'))
+  finish
+  " License is CC-0 public domain
+  " snd test require sox
+  " and speech-dispatcher
+"}}
+0..\SOUND TEST\...
+"{{
+command -buffer -nargs=* Snd call system('play -n synth .4 sine '.eval(<q-args>).' gain -8 fade 0 .4 .1 &')
+command -buffer -nargs=* Say call system('spd-say -l '.strpart(expand("$LANG"),0,2).' "'.shellescape(eval(<q-args>)).'" &')
+let l:freq=220
+resize 1
+echo "q -> quit ; Arrows -> beep; * -> say char; hello -> ?"  
+while 1
+  let l:ch=getchar(0)
+  if !empty(l:ch)
+    if l:ch == "\<Left>"
+      let l:freq=l:freq<30?30:(l:freq*3/5)%8000
+      Snd l:freq
+    elseif l:ch == "\<Right>"
+      let l:freq=(l:freq*5/3)%8000
+      Snd l:freq
+    elseif l:ch == "\<Up>"
+      let l:freq=(l:freq*9/8)%8000
+      Snd l:freq
+    elseif l:ch == "\<Down>"
+      let l:freq=l:freq<30?30:(l:freq*8/9)%8000
+      Snd l:freq
+    else 
+      let l:ch = nr2char(l:ch)
+      let l:chlive=getchar(0)
+      let l:time=reltime()
+      while !empty(l:chlive)
+         let l:ch.=nr2char(l:chlive)
+         sleep 200ms
+         let l:chlive=getchar(0)
+      endwhile
+      Say l:ch
+      
+      if l:ch == 'q'
+        break
+      endif
+    endif
+  endif
+  sleep 400ms
+endwhile
+" Quit
+q
+" vim : commentstring="%s : comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
+"}}
