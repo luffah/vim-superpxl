@@ -64,7 +64,7 @@ fu! render#Dj(pos,tpl,...)
         let l:preprocessing=join(
               \filter(
                 \s:dj_last_pass_ignored_lines
-                \,{idx, val -> val =~ '^\s*s\(.\).*\1.*\1g\?\s*\(".*\)\?'})
+                \,'v:val =~ ''^\s*s\(.\).*\1.*\1g\?\s*\(".*\)\?''')
             \,"\n")
         for l:il in s:dj_last_pass_ignored_lines
           if l:il =~ '^\s*s\(.\).*\1.*\1g\?\s*\(".*\)\?'
@@ -113,7 +113,7 @@ fu! render#Dj(pos,tpl,...)
     let l:i+=1
   endfor
   if g:render_dj_enable_systematic_postprocessing
-    exe join(filter(l:post_process_lines,{idx, val -> val !~ '^\s*"'}),"\n")
+    exe join(filter(l:post_process_lines,'v:val !~ ''^\s*"'''),"\n")
     let s:dj_last_pass_ignored_lines=[]
   endif
   if a:pos > 0
@@ -130,7 +130,6 @@ endfu
 
 fu! render#Dj_playAnimation(file,...)
   cal bot#BackupSearch()
-  tabnew
   noh
   call clearmatches()
   setlocal undolevels=0
@@ -148,7 +147,6 @@ fu! render#Dj_playAnimation(file,...)
   setlocal listchars=
   setlocal laststatus=2
   setlocal fileencodings=utf-8
-  setlocal signcolumn=no
   setlocal regexpengine=1
   setlocal lazyredraw
   setlocal nofoldenable
@@ -160,20 +158,13 @@ fu! render#Dj_playAnimation(file,...)
   " syntax on
   " Hides/restores cursor at the start/end of the game
   if has('gui')
-    augroup bot_exec
-      au!
-      execute "autocmd BufEnter,BufLeave <buffer> set guicursor=" . &guicursor
-    augroup END
-    set guicursor=n:none
+    let l:guicursor=&guicursor
+    setlocal guicursor=n:none
   else
-    augroup bot_exec
-      au!
-      execute "autocmd BufEnter,BufLeave <buffer> set t_ve=" . &t_ve
-      execute "autocmd VimLeave <buffer> set t_ve=" . &t_ve
-    augroup END
+    let l:t_ve=&t_ve
     setlocal t_ve=
   endif
-  let l:_post_process_lines=filter(l:_post_process_lines,{idx, val -> val !~ '^\s*".*'})
+  let l:_post_process_lines=filter(l:_post_process_lines,'v:val !~ ''^\s*".*''')
 
   try
     let l:i = 0
@@ -203,9 +194,12 @@ fu! render#Dj_playAnimation(file,...)
         echo l:nu+2.' '.b:_script_lines[l:nu+1]
       endif
     endif
-    cal bot#RestoreSearch()
-    call getchar()
   endtry
+  if has('gui')
+    exe 'setlocal guicursor='.l:guicursor
+  else
+    exe 'setlocal t_ve='.l:t_ve
+  endif
   cal bot#RestoreSearch()
 endfu
 

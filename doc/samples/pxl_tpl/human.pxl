@@ -1,36 +1,35 @@
 "{{
-  call render#Dj_playAnimation(expand('<sfile>'))
+  tabnew | call render#Dj_playAnimation(expand('<sfile>'))
   finish
   " License is CC-0 public domain
-  " Todo : in bot.vim autodetect images definitions
 "}}
---{{ "def neck:head -3 }}
+--def head--
   BBBBBBB 
  BBBBBBBBB
  BB0BBB0BB
  BBBBBBBBB
  BBBBBBBBB
   BB000BB
---{{ "def neck:body -3 }}
+--def body--
    BBBBB  
    FBBBF  
    BBBBB  
    BBBBB  
    BB BB  
---{{ "def neck:head smile }}
+--def head_smiling--
   BBBBBBB 
  BB0BBB0BB
  BB0BBB0BB
  BBBBBBBBB
  BB0BBB0BB
   BB000BB
---{{ "def neck:bodymove -3 }}
+--def body_moving--
    BBBBB  
    BBBBF  
    FBBBB 
    BBBBBB 
    BB     
---{{ "def neck:d -3}}
+--def d--
   1111111 
  11 111 11
  1  111  1
@@ -42,12 +41,27 @@
    11111  
    11111  
    11 11  
---{{ "def coeur:heart }}
+--def coeur--
   99  99
  99999999
   999999
     99 
+--def crono--
+  00000
+ 0FF0FF0
+0FFF0FFF0
+0F000FFF0
+0FFFFFFF0
+ 0FFFFF0
+  00000
 "{{
+" TOFIX: collision offset
+" TOFIX: refresh with crono when neck move
+"        --> no problem, shall be declared in l:all_sprites
+"        +   call map(copy(l:all_sprites),'v:val.clear()')
+"      --> TODO: add sprite group to clear
+" TODO: time stability function
+" TODO: live painting at the end of game
 " redefining syntax from zero enhance performances
 syn clear
 call pixel#def('','B','#FCE94F',11)
@@ -60,33 +74,30 @@ call pixel#def('','A','#00FF00',10)
 call pixel#def('','9','#FF0000',9)
 " redefining syntax from zero enhance performances
 
-let l:sprites={
-      \ 'coeur':getline(40,43),
-      \ 'head':getline(2,7),
-      \ 'body':getline(9,13),
-      \ 'head_smiling':getline(15,20),
-      \ 'body_moving':getline(22,26),
-      \ 'd': getline(28,38)
-      \}
+" build sprites
+let l:sprites=bot#getSpriteImages('--def \(\w\+\)--')
 let l:sprites.a = l:sprites.head + l:sprites.body_moving
 let l:sprites.b = l:sprites.head + l:sprites.body
 let l:sprites.c = l:sprites.head_smiling + l:sprites.body
 for l:i in keys(l:sprites)
   let l:sprites[l:i.'r']=pixel#Mirror(l:sprites[l:i])
 endfor
+
 let l:continue=3
 
-let l:width = winwidth('%')
 command -buffer -nargs=* Echo call bot#echof('c',eval(<q-args>),l:width)
 while l:continue
-  call bot#newBackground(l:width,25,'8')
-  call bot#fill(0,24,l:width,1,'0')
-  call bot#pastePixel(0,24,'777')
-  call bot#pastePixel(l:width-3,24,'777')
+  let l:width = winwidth('%')
+  let l:height = 24
+  call bot#newBackground(l:width,25,'8') " do resize
+  call bot#fill(0,l:height,l:width,1,'0')
+  call bot#pastePixel(0,l:height,'777')
+  call bot#pastePixel(l:width-3,l:height,'777')
   let l:chrono=reltime()
   let l:neck = bot#newSprite(l:sprites['a'],-3)
   let l:coeur = bot#newSprite(l:sprites['coeur'],0)
-  let l:all_sprites = [l:neck, l:coeur]
+  let l:time = bot#newSprite(l:sprites['crono'],0)
+  let l:all_sprites = [l:neck, l:coeur, l:time]
   let l:mid=l:width/2
   let l:midmin=l:width/2-10
   let l:midmax=l:width/2+10
@@ -102,6 +113,8 @@ while l:continue
   "let l:totalcnt=0
   let l:curcoeurx=bot#getRandom(l:width-8)
   let l:curcoeury=-4
+  let l:timex=bot#getRandom(l:width-8)
+  let l:timey=-4
   try
     Echo "And left and right ! and again !"
     while l:i < l:width - 10
@@ -109,6 +122,7 @@ while l:continue
       for l:j in [3,2,1,0,1,2]
         let l:new_fill=[]
         let l:new_paste=[]
+" TOFIX: as a matrix
         if l:inputcnt == l:stepsize 
           let l:new_fill=[l:width/2-1,2,1,1,'A']
         elseif l:inputcnt == 2 * l:stepsize
@@ -145,6 +159,7 @@ while l:continue
           call bot#fill(new_fill[0],new_fill[1],new_fill[2],new_fill[3],new_fill[4])
         endif 
         call l:coeur.place(l:curcoeurx,l:curcoeury)
+        call l:time.place(l:timex,l:timey)
         call l:neck.placeBase(l:i, 24-((l:j*l:factorh)/2))
         redraw
         sleep 31m
@@ -172,7 +187,13 @@ while l:continue
           let l:inc=-l:inc
           let l:reverse=(l:reverse?0:1)
         endif
-        if l:curcoeury == 24
+        if l:timey == l:height 
+          let l:timex=bot#getRandom(l:width-8)
+          let l:timey=-5-bot#getRandom(l:height)
+        elseif l:factor > 4 || l:j == 0
+          let l:timey+=1 
+        endif
+        if l:curcoeury == l:height 
           let l:curcoeurx=bot#getRandom(l:width-8)
           let l:curcoeury=-4
         elseif l:factor > 4 || l:j == 0

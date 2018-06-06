@@ -121,6 +121,13 @@ fu! pixel#AsciiMirror(lines)
   return l:ret
 endfu
 
+command! -bar -range AsciiMirror cal s:Iter('s:MirrorFun',<line1>,<line2>, s:AsciiMirrorTr)
+command! -bar -range CharMirror  cal s:Iter('s:MirrorFun', <line1>,<line2>, {})
+command! -bar -range CharRefill  cal s:Iter('s:LineColorsReFill', <line1>,<line2>, {'magic':'.'})
+command! -bar -range CharUnfill  cal s:Iter('s:LineColorsUnFill', <line1>,<line2>, {'magic':'.'})
+command! -bar -range=% Reverse <line1>,<line2>g/^/m<line1>-1
+
+
 if has('python3')
   let s:pyfile = 'py3file'
   let s:python = 'python3'
@@ -128,7 +135,14 @@ elseif has('python')
   let s:pyfile = 'pyfile'
   let s:python = 'python'
 endif
-
+if exists('s:python')
+  try
+    exe s:python.' import PIL'
+  catch "Vim("
+    "echo 'png to pixel conversion require PIL : pip install -g PIL'
+    unlet s:python
+  endtry
+endif
 if exists('s:python')
   let s:script_path = expand('<sfile>:p:h') . '/pixelpng.py'
   execute(s:pyfile) s:script_path
@@ -146,7 +160,7 @@ if exists('s:python')
     if l:fname !~ '\.png$'
       let l:fname .= '.png'
     endif
-    
+
     if s:python == 'python3'
     python3 << _EOF_
 import vim
@@ -282,40 +296,34 @@ _EOF_
 endif
 
 if has('gui')
-function! pixel#chZoom(nb)
-  let s:guifont=&guifont
-  exe 'set guifont='.substitute(substitute(s:guifont,' \d*$',' '.a:nb,''),' ','\\ ','g')
-  redraw
-endfu
-function! pixel#resetZoom()
-  exe 'set guifont='.substitute(s:guifont,' ','\\ ','g')
-  redraw
-endfu
+  function! pixel#chZoom(nb)
+    let s:guifont=&guifont
+    exe 'set guifont='.substitute(substitute(s:guifont,' \d*$',' '.a:nb,''),' ','\\ ','g')
+    redraw
+  endfu
+  function! pixel#resetZoom()
+    exe 'set guifont='.substitute(s:guifont,' ','\\ ','g')
+    redraw
+  endfu
 
-function! pixel#bestZoom()
-  let s:guifont=&guifont
-  let l:z=get(g:,'max_font_size',12)
-  let l:maxw=max(map(getline(0,line('$')),'len(v:val)'))
-  exe 'set guifont='.substitute(substitute(s:guifont,' \d*$',' '.l:z,''),' ','\\ ','g')
-  let l:w=winwidth('%')
-  while l:w<l:maxw
-    let l:z-=1
+  function! pixel#bestZoom()
+    let s:guifont=&guifont
+    let l:z=get(g:,'max_font_size',12)
+    let l:maxw=max(map(getline(0,line('$')),'len(v:val)'))
     exe 'set guifont='.substitute(substitute(s:guifont,' \d*$',' '.l:z,''),' ','\\ ','g')
     let l:w=winwidth('%')
-  endwhile
-  redraw
-endfu
+    while l:w<l:maxw
+      let l:z-=1
+      exe 'set guifont='.substitute(substitute(s:guifont,' \d*$',' '.l:z,''),' ','\\ ','g')
+      let l:w=winwidth('%')
+    endwhile
+    redraw
+  endfu
 
-command! -bar -nargs=1 TmpZoom  cal pixel#chZoom(<args>) | sleep 2 | cal pixel#resetZoom()
-command! -bar ZoomReset  cal pixel#resetZoom()
-command! -bar -nargs=1 Zoom  cal pixel#chZoom(<args>)
-command! -bar ZoomFitToWindow  cal pixel#bestZoom()
-command! -bar TmpZoomFitToWindow  cal pixel#bestZoom() | sleep 2 | cal pixel#resetZoom()
+  command! -bar -nargs=1 TmpZoom  cal pixel#chZoom(<args>) | sleep 2 | cal pixel#resetZoom()
+  command! -bar ZoomReset  cal pixel#resetZoom()
+  command! -bar -nargs=1 Zoom  cal pixel#chZoom(<args>)
+  command! -bar ZoomFitToWindow  cal pixel#bestZoom()
+  command! -bar TmpZoomFitToWindow  cal pixel#bestZoom() | sleep 2 | cal pixel#resetZoom()
 endif
-
-command! -bar -range AsciiMirror cal s:Iter('s:MirrorFun',<line1>,<line2>, s:AsciiMirrorTr)
-command! -bar -range CharMirror  cal s:Iter('s:MirrorFun', <line1>,<line2>, {})
-command! -bar -range CharRefill  cal s:Iter('s:LineColorsReFill', <line1>,<line2>, {'magic':'.'})
-command! -bar -range CharUnfill  cal s:Iter('s:LineColorsUnFill', <line1>,<line2>, {'magic':'.'})
-command! -bar -range=% Reverse <line1>,<line2>g/^/m<line1>-1
 

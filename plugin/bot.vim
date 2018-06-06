@@ -4,13 +4,44 @@ endif
 
 " Bot api shall be usable even if bot is not used
 let s:prev_crono=reltime()
+let s:prev_random=0
 fu! bot#getRandom(val)
   let l:timediff=reltime(s:prev_crono)
   let s:random=l:timediff[1]
   if a:val==0
     return 0
   endif
-  return s:random%a:val
+  let l:new_rand = s:random%a:val
+  if s:prev_random == l:new_rand
+     call bot#getRandom(a:val)
+  else
+     let s:prev_random=s:random%a:val
+  endif
+  return s:prev_random
+endfu
+fu! bot#getRandom2(val)
+  let l:timediff=reltime(s:prev_crono)
+  let s:random=l:timediff[1]*l:timediff[0]
+  if a:val==0
+    return 0
+  endif
+  let l:new_rand = s:random%a:val
+  let s:prev_random=s:random%a:val
+  return s:prev_random
+endfu
+
+fu! bot#getCharSync(timebase,retries)
+  let l:c=0
+  exe 'sleep '.a:timebase.'m'
+  while l:c < a:retries
+     let l:gchar=getchar(0)
+     if !empty(l:gchar)
+       return l:gchar
+     endif
+     let l:c+=1
+     exe 'sleep '.a:timebase.'m'
+  endwhile
+  return
 endfu
 
 fu! bot#echof(align,txt,width)
@@ -185,8 +216,12 @@ function! s:is_colliding(ma,mb)
   return 0
 endfu
 
+" TOFIX: include offset in computing
 function! s:collide(sprtb) dict
-  if (self.x<=(a:sprtb.x+a:sprtb.w) && a:sprtb.x<=(self.x+self.w)) && (self.y<=(a:sprtb.y+a:sprtb.h) && a:sprtb.y<=(self.y+self.h)) 
+  let l:ax=self.x+self.offset
+  let l:bx=a:sprtb.x+a:sprtb.offset
+  " if (self.x<=(a:sprtb.x+a:sprtb.w) && a:sprtb.x<=(self.x+self.w)) && (self.y<=(a:sprtb.y+a:sprtb.h) && a:sprtb.y<=(self.y+self.h)) 
+  if (l:ax<=(l:bx+a:sprtb.w) && l:bx<=(l:ax+self.w)) && (self.y<=(a:sprtb.y+a:sprtb.h) && a:sprtb.y<=(self.y+self.h)) 
       let l:ma=s:get_collision_matrix(self)
       let l:mb=s:get_collision_matrix(a:sprtb)
       return s:is_colliding(l:ma,l:mb)
@@ -261,10 +296,27 @@ function! s:changeSpritePic(lines,...) dict
   call bot#pastePixels(self.x,self.y,self.w,self.h,self.lines)
 endfunction
 
+fu! bot#getSpriteImages(pattern)
+  let l:sprites={}
+  let l:name=''
+  let l:start=0
+  for l:i in range(line('$'))
+    let l:l=getline(l:i)
+    if l:l =~ a:pattern
+      if len(l:name)
+        let l:sprites[l:name]=getline(l:start,l:i-1)
+      endif
+      let l:name = substitute(l:l,a:pattern,'\1','')
+      let l:start = l:i + 1
+    endif
+  endfor
+  let l:sprites[l:name]=getline(l:start,line('$'))
+  return l:sprites
+endfu
 
 """ bot part
 if !(exists('g:superpxl_bot_activate') && g:superpxl_bot_activate)
-    "finish
+    finish
 endif
 let s:path=expand('<sfile>:p:h:h')
 let g:bot_time_interval=get(g:,'bot_time_interval',60*30)
@@ -274,7 +326,10 @@ let g:bot_initialization_done=0
 
 let g:bot_initialization_path=s:path.'/doc/samples/pxl_tpl/'
 let g:bot_initialization=get(g:,'bot_initialization','call bot#PreparePics("'.g:bot_initialization_path.'",".pxl")')
-let g:bot_instruction=get(g:,'bot_instruction','call bot#ShowRandomPic("let b:updater = render#Dj(1,l:lines) | let l:post_process_lines=render#Dj_getIgnoredLines() | let l:lines=[] ")')
+"let g:bot_instruction=get(g:,'bot_instruction','call bot#ShowRandomPic("let b:updater = render#Dj(1,l:lines) | let l:post_process_lines=render#Dj_getIgnoredLines() | let l:lines=[] ")')
+
+let g:bot_instruction=get(g:,'bot_instruction','call bot#ShowRandomPic("rightbelow split | enew | call render#Dj_playAnimation(a:file)")')
+  
 
 exe 'set rtp+='.g:bot_initialization_path
 
@@ -291,92 +346,16 @@ fu! bot#PreparePics(path, ext)
 endfu
 
 fu! bot#ShowRandomPic(renderer)
-  call bot#ShowRenderedFile(
+  call bot#RenderFile(
         \s:vivi_templates[bot#getRandom(s:vivi_random_range)],
         \a:renderer)
 endfu
 
-fu! bot#ShowRenderedFile(file, renderer)
+fu! bot#RenderFile(file, renderer)
   if filereadable(a:file)
-    cal bot#BackupSearch()
-    rightbelow split
-    enew
-    call clearmatches()
-    setlocal undolevels=0
-    setlocal nowrap nocursorline nonu
-    setlocal buftype=nofile
-    setlocal bufhidden=wipe
-    setlocal nobuflisted
-    setlocal noswapfile
-    setlocal nocursorcolumn
-    setlocal norelativenumber
-    setlocal listchars=
-    setlocal laststatus=2
-    setlocal fileencodings=utf-8
-    setlocal signcolumn=no
-    setlocal regexpengine=1
-    setlocal lazyredraw
-    setlocal nofoldenable
-    let l:post_process_lines=[]
-    let l:lines=readfile(a:file)
-    exe a:renderer
-    call setline(1,l:lines)
-    exe 'set ft='.split(a:file,'\.')[-1]
-    exe 'resize '.line('$')
-    redraw
-    " execute "setlocal synmaxcol=" . (a:config['width'] - 1)
-    if has('gui')
-      let l:_back_gui_cursor=&guicursor
-      augroup bot_exec
-        au!
-        execute "autocmd BufEnter,BufLeave,BufUnload,WinLeave <buffer> set guicursor=" . &guicursor
-      augroup END
-      set guicursor=n:none
-    else
-      " Hides/restores cursor at the start/end of the game
-      augroup bot_exec
-        au!
-        execute "autocmd BufEnter,BufLeave,BufUnload,WinLeave <buffer> set t_ve=" . &t_ve
-        execute "autocmd VimLeave <buffer> set t_ve=" . &t_ve
-      augroup END
-      setlocal t_ve=
-    endif
-    let l:_script_lines=filter(l:post_process_lines,{idx, val -> val !~ '^\s*".*'})
-    
-    try
-      let l:i = 0
-      while l:i < len(l:_script_lines)
-        if l:_script_lines[l:i]=~'^\s*\\\s*'
-          let l:_script_lines[l:i-1].=substitute( remove(l:_script_lines,l:i),'^\s*\\\s*','','')
-        else
-          let l:i+=1
-        endif
-      endwhile
-      exe "function! s:_current_process()\n".join(l:_script_lines,"\n")."\n endfunction"
-      call s:_current_process()
-    catch
-      echo v:exception
-      echo " - at - " . v:throwpoint
-      if v:throwpoint =~ '.*__current_process, \a\+ \d\+'
-        let l:nu=str2nr(substitute(v:throwpoint,'^.*__current_process, \a\+ \(\d\+\)','\1',''))
-        if l:nu > 1
-          echo l:nu-1.' '.l:_script_lines[l:nu-2]
-        endif
-        if l:nu > 0
-          echo l:nu.' '.l:_script_lines[l:nu-1]
-        endif
-        echo l:nu+1.' '.l:_script_lines[l:nu]
-        if l:nu < len(l:_script_lines)
-          echo l:nu+2.' '.l:_script_lines[l:nu+1]
-        endif
-      endif
-      cal bot#RestoreSearch()
-    endtry
+    exe a:renderer  
   endif
-  cal bot#RestoreSearch()
-  if has('gui')
-    exe 'set guicursor='.l:_back_gui_cursor
-  endif
+  " call getchar()
 endfu
 
 " Bot generic programme
@@ -392,8 +371,9 @@ endfu
 
 try
   exe g:bot_initialization
-  augroup vivi
-    au! VimEnter,BufEnter,TabEnter,CursorHold *
+  augroup superpxl_bot
+    au!
+    au VimEnter,CmdwinLeave,CmdUndefined,CursorHold,CursorHoldI *
           \ cal <SID>CheckTime()
   augroup END
 catch

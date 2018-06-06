@@ -16,7 +16,7 @@ while 1
   let l:ch=getchar(0)
   if !empty(l:ch)
     if l:ch == "\<Left>"
-      let l:freq=l:freq<30?30:(l:freq*3/5)%8000
+      let l:freq=l:freq<30?44:(l:freq*3/5)%8000
       Snd l:freq
     elseif l:ch == "\<Right>"
       let l:freq=(l:freq*5/3)%8000
@@ -25,25 +25,41 @@ while 1
       let l:freq=(l:freq*9/8)%8000
       Snd l:freq
     elseif l:ch == "\<Down>"
-      let l:freq=l:freq<30?30:(l:freq*8/9)%8000
+      let l:freq=l:freq<30?56:(l:freq*8/9)%8000
+      Snd l:freq
+    elseif l:ch == 13
       Snd l:freq
     else 
-      let l:ch = nr2char(l:ch)
-      let l:chlive=getchar(0)
-      let l:time=reltime()
-      while !empty(l:chlive)
-         let l:ch.=nr2char(l:chlive)
-         sleep 200ms
-         let l:chlive=getchar(0)
-      endwhile
-      Say l:ch
+      let l:chstr = nr2char(l:ch)
       
-      if l:ch == 'q'
+      let l:chlive=nr2char(bot#getCharSync(50,3))
+      while !empty(l:chlive)
+         let l:chstr.=l:chlive
+         let l:chlive=bot#getCharSync(50,10)
+         if l:chlive==13
+          Snd l:freq
+          Say l:chstr
+          let l:chstr=''
+          let l:chlive=' '
+         else
+          if l:chlive==32 || l:chlive==9
+            Say l:chstr
+            let l:chstr=''
+            let l:chlive=' '
+          else
+            let l:chlive=nr2char(l:chlive)
+          endif
+         endif
+      endwhile
+      
+      if l:chstr == 'q'
         break
+      else
+        Say l:chstr
       endif
     endif
   endif
-  sleep 400ms
+  sleep 125ms
 endwhile
 " Quit
 q

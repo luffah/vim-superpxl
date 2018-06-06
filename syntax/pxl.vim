@@ -1,3 +1,8 @@
+if version < 600
+  syntax clear
+"elseif exists("b:current_syntax")
+  "finish
+endif
 
 runtime syntax/pxlcolors.vim
 syn include @vimIncl syntax/vim.vim
@@ -8,3 +13,5 @@ hi IndentGuidesOdd  guibg=NONE ctermbg=0
 
 hi IndentGuidesEven guibg=NONE ctermbg=0
 
+syn sync fromstart
+"let b:current_syntax = "zim"
