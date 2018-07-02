@@ -138,10 +138,6 @@ fu! render#Dj_playAnimation(file,...)
   setlocal bufhidden=wipe
   setlocal nobuflisted
   setlocal noswapfile
-  setlocal buftype=nofile
-  setlocal bufhidden=wipe
-  setlocal nobuflisted
-  setlocal noswapfile
   setlocal nocursorcolumn
   setlocal norelativenumber
   setlocal listchars=
@@ -150,6 +146,8 @@ fu! render#Dj_playAnimation(file,...)
   setlocal regexpengine=1
   setlocal lazyredraw
   setlocal nofoldenable
+  setlocal undolevels=-1
+  setlocal statusline=%#NONE#
   let b:updater=render#Dj(1,readfile(a:file))
   let l:_post_process_lines=render#Dj_getIgnoredLines()
   exe 'set ft='.split(a:file,'\.')[-1]
@@ -157,13 +155,10 @@ fu! render#Dj_playAnimation(file,...)
   redraw
   " syntax on
   " Hides/restores cursor at the start/end of the game
-  if has('gui')
-    let l:guicursor=&guicursor
-    setlocal guicursor=n:none
-  else
-    let l:t_ve=&t_ve
-    setlocal t_ve=
-  endif
+  let l:guicursor=&guicursor
+  let l:t_ve=&t_ve
+  setlocal guicursor=n:none
+  setlocal t_ve=
   let l:_post_process_lines=filter(l:_post_process_lines,'v:val !~ ''^\s*".*''')
 
   try
@@ -195,11 +190,9 @@ fu! render#Dj_playAnimation(file,...)
       endif
     endif
   endtry
-  if has('gui')
-    exe 'setlocal guicursor='.l:guicursor
-  else
-    exe 'setlocal t_ve='.l:t_ve
-  endif
+  exe 'setlocal guicursor='.l:guicursor
+  exe 'setlocal t_ve='.l:t_ve
+  setlocal statusline=
   cal bot#RestoreSearch()
 endfu
 

@@ -27,6 +27,7 @@ Start Vim.
 
 ## Features
 * Pixel art editor
+* Some ascii art facilities
 * Sprites
 * Template rendering
-* Scheduled intrusion of random bots in your working session
+* Scheduled intrusion of random bot in your working session

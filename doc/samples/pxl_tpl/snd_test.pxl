@@ -7,7 +7,7 @@
 "}}
 0..\SOUND TEST\...
 "{{
-command -buffer -nargs=* Snd call system('play -n synth .4 sine '.eval(<q-args>).' gain -8 fade 0 .4 .1 &')
+command -buffer -nargs=* Snd call system('play -n synth .4 sine '.eval(<q-args>).' gain -10 fade 0 .4 .1 &')
 command -buffer -nargs=* Say call system('spd-say -l '.strpart(expand("$LANG"),0,2).' "'.shellescape(eval(<q-args>)).'" &')
 let l:freq=220
 resize 1

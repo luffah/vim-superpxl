@@ -117,7 +117,7 @@ endfu
 function! bot#pastePixels(x,y,w,h,lines)
     let l:screenh=line('$')
     " if pixels are out of scope, do nothing
-    if (a:x + a:w < 0) || (a:y + a:h < 0) || (a:y > l:screenh)
+    if ((a:x + a:w < 0) || (a:y + a:h < 0) || (a:y > l:screenh))
       return
     endif
     " offset modifiers for the case pixel set is partially out of the screen
@@ -136,21 +136,34 @@ function! bot#pastePixels(x,y,w,h,lines)
     let l:bglines = getline(a:y+l:decy+1, a:y+l:decy+l:nbli)
     
     for l:i in range(l:nbli)
-      let l:cur=a:lines[l:i+l:decy]
-      if len(l:cur) > l:decx && len(l:bglines[l:i]) > 0
-        if len(l:bglines[l:i])<a:x
-          let l:bglines[l:i].=repeat(' ',a:x-len(l:bglines[l:i])-1).a:x
+      let l:cur=split(a:lines[l:i+l:decy],'\zs')
+      if len(l:cur) + l:decx > 0
+        " the sprite part shall be in the image
+        let l:line=split(l:bglines[l:i],'\zs')
+        if len(l:line)<a:x
+          "the line end is before x coord -> just append
+          let l:bglines[l:i].=repeat(' ',a:x-len(l:line)).join(l:cur,'')
         else
           let l:suf=''
-          let l:line=split(l:bglines[l:i],'\zs')
           for l:c in range(l:decx,len(l:cur)-1)
-            if l:cur[l:c] != ' '
-              if len(l:line)>=(l:c + a:x)
-                let l:line[l:c+a:x]=l:cur[l:c]
-              else  
-                let l:suf.=l:cur[l:c]
-              endif
+            " here we add the sprite part char by char to the line
+            if (l:c + a:x) >= len(l:line)
+              " if the char is space (=null),  only append
+              let l:suf.=l:cur[l:c]
+            elseif l:cur[l:c] != ' '
+              " if the char is not space (= not null), modify existing
+              let l:line[l:c+a:x]=l:cur[l:c]
             endif
+            " if l:cur[l:c] != ' '
+            "   " if the char is not space (= not null)
+            "   if (l:c + a:x) <= len(l:line)
+            "     let l:line[l:c+a:x]=l:cur[l:c]
+            "   else  
+            "     let l:suf.=l:cur[l:c]
+            "   endif
+            " elseif (l:c + a:x) >= len(l:line)
+            "     let l:suf.=' '
+            " endif
           endfor
           let l:bglines[l:i]=join(l:line,'').l:suf
         endif
@@ -229,6 +242,13 @@ function! s:collide(sprtb) dict
   return 0
 endfu
 
+function! s:equilibre(lines,max)
+  for l:i in range(len(a:lines))
+     let l:_len=len(a:lines[l:i])
+     let a:lines[l:i].= repeat(' ',a:max - l:_len)
+  endfor
+  return a:lines
+endfu
 
 function! bot#newSprite(lines,offset)
   let l:obj={
@@ -243,9 +263,9 @@ function! bot#newSprite(lines,offset)
         \ }
   " let b:before_bg=getline(0,line('$'))
   let b:last_bg=getline(0,line('$'))
-  let l:obj.lines=a:lines
-  let l:obj.train=[]
   let [l:obj.w, l:obj.h] = bot#getSpriteSize(a:lines)
+  let l:obj.lines=s:equilibre(a:lines,l:obj.w)
+  let l:obj.train=[]
   let l:obj.offset=a:offset
   return l:obj
 endfunction
@@ -373,7 +393,7 @@ try
   exe g:bot_initialization
   augroup superpxl_bot
     au!
-    au VimEnter,CmdwinLeave,CmdUndefined,CursorHold,CursorHoldI *
+    au CmdwinLeave,CmdUndefined,InsertChange,InsertLeave,VimResized *
           \ cal <SID>CheckTime()
   augroup END
 catch

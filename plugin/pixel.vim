@@ -1,18 +1,49 @@
 "  symbol -> guicolor, termcolor, hexAABBGGRR, guitext, termtext
 let s:AsciiMirrorTr={
       \'/' : '\',
-      \'\' : '/',
       \'(' : ')',
-      \')' : '(',
       \'[' : ']',
-      \']' : '[',
       \'{' : '}',
-      \'}' : '{',
       \'<' : '>',
-      \'>' : '<',
-      \',' : '.',
       \'p' : 'q',
+      \'O' : 'Q',
+      \'←' : '→',
+      \'↖' : '↗',
+      \'↘' : '↙',
+      \'b' : 'd',
+      \'`' : '´',
+      \'ì' : 'í',
+      \'à' : 'á',
+      \'ò' : 'ó',
+      \'ú' : 'ù',
+      \'▏' : '▕',
+      \'▌' : '▐',
+      \'┌' : '┐',
+      \'┘' : '└',
+      \'╝' : '╚',
+      \'╔' : '╗',
+      \'╣' : '╠',
+      \'┤' : '├',
+      \'◗' : '◖',
+      \'◑' : '◐',
+      \'▛' : '▜',
+      \'▞' : '▚',
+      \'▙' : '▟',
+      \'▘' : '▝',
+      \'⎤' : '⎡',
+      \'⎣' : '⎦',
+      \'⎭' : '⎩',
+      \'⎫' : '⎧',
+      \'⎬' : '⎨',
+      \'⎛' : '⎞',
+      \'⎝' : '⎠',
+      \'⏩' : '⏪',
+      \'⏭' : '⏮',
       \}
+for s:i in keys(s:AsciiMirrorTr)
+  let s:AsciiMirrorTr[s:AsciiMirrorTr[s:i]]=s:i
+endfor
+let s:AsciiMirrorTr[','] = '.'
 
 fu! s:LineColorsUnFill(line,dict)
   let l:ret=split(a:line, '\zs')
@@ -105,18 +136,23 @@ endfu
 
 fu! pixel#Mirror(lines)
   let l:ret=[]
-  let l:maxw=max(map(copy(a:lines),'len(v:val)'))
+  " let l:maxw=max(map(copy(a:lines),'len(v:val)'))
+  let l:maxw=max(map(copy(a:lines),'len(split(v:val,"\\zs"))'))
   for l:l in a:lines
-    call add(l:ret,repeat(" ",l:maxw-len(l:l)).join(reverse(split(l:l, '\zs')),''))
+    let l:len=len(split(l:l,'\zs'))
+    call add(l:ret,repeat(" ",l:maxw-l:len).join(reverse(split(l:l, '\zs')),''))
   endfor
   return l:ret
 endfu
 
 fu! pixel#AsciiMirror(lines)
   let l:ret=[]
-  let l:maxw=max(map(copy(a:lines),'len(v:val)'))
+  let l:maxw=max(map(copy(a:lines),'len(split(v:val,"\\zs"))'))
+
   for l:l in a:lines
-    call add(l:ret,s:MirrorFun(l:l.repeat(" ",l:maxw-len(l:l)),s:AsciiMirrorTr))
+    let l:len=len(split(l:l,'\zs'))
+    let l:l.=repeat(" ",l:maxw-l:len)
+    call add(l:ret,s:MirrorFun(l:l,s:AsciiMirrorTr))
   endfor
   return l:ret
 endfu
