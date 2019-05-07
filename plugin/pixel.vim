@@ -173,7 +173,7 @@ elseif has('python')
 endif
 if exists('s:python')
   try
-    exe s:python.' import PIL'
+    exe s:python.' from PIL import Image'
   catch "Vim("
     "echo 'png to pixel conversion require PIL : pip install -g PIL'
     unlet s:python
