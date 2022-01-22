@@ -1,20 +1,20 @@
-{{
+"{% head %}
+  tabnew | call render#Dj_playAnimation(expand('<sfile>'))
+  finish
   " License is CC-0 public domain
-}}
-  000000000000000000000000000000000000000000000000000000000
-  00    99333390                                          0
-  00  039000000390  Il est peut-être                      0
-  00 9390FFFFFF0390  temps de faire une                   0
-  009390FF33FF330390  pause !                             0
-  09390FF30FFF0F0390                                      0
-  09390FFFFFFDFF0390                                      0
-  09390FFFFFFFDF0390                                      0
-  00930FFFFFFFFF030                                       0
-  00930FFFF555FF030                                       0
-  003930FFFFFFF090 {{strftime("...Il est %Hh%M et on est %8A",localtime())}}     0
-  0093930FFFF0039888888888888888888888888888888           0
-  0909030FFFF0390000000000000000000000000000000000        0
-  004535555553555400000000000000000000000000000000000000000
-  004555555555555400000000000000000000000000000000000000000
-{{{
-}}}
+
+  " Source this file to play animation
+  " so %
+"{% end head %}
+  00000880000008800000000000000000000000000000000000000000
+  00  8804CCCCC088                                       0
+  00 8804C22CC2208                                       0
+  008804C20FC40F08   Il est peut-être                    0
+  00880CCC00C40008    temps de faire une                 0
+  00880CCCCCCC4C08     pause !                           0
+  00880CCCDCC4CC08                                       0
+  008804CC4DDCCC08                                       0
+  00 8804CCCCCC08 {{strftime("...Il est %Hh%M et on est %8A",localtime())}}     0
+  088888044CC008888                                      0
+  88000004CCC0000088                                     0
+  80031010101013000880000000000000000000000000000000000000

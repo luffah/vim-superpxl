@@ -1,9 +1,15 @@
-{{
-" License is CC-0 public domain
+"{% head %}
+  tabnew | call render#Dj_playAnimation(expand('<sfile>'))
+  finish
+  " License is CC-0 public domain
 
+  " Source this file to play animation
+  " so %
+"{% end head %}
+{% subst %}
 " the first part can contain substitutions which will be applied to each line
 s/\(HH:MM:SS\)/{{ '\1' {<<} b:hour }}/
-}}
+{% end subst %}
  7777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777 
 777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777
 777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777
@@ -26,10 +32,9 @@ s/\(HH:MM:SS\)/{{ '\1' {<<} b:hour }}/
 777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777
 777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777
  7777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777777 
-  7777FFFFFFFFFFFFFFFFFFFFFFFFFFF\q0123456789ABCDEF\..............................................7777
+  7777FFFFFFFFFFFFFFFFFFFFFFFFFFF...............F................................................7777
     777FFFFFFFFFFFFFFFFFFFFFFFFFF\Heure : HH:MM:SS\..............................................777
-{{
-cal bot#BackupSearch()
+{% code %}
 " Animation example (note the  { { and } } shall clearly delimit the code from the image)
 " The code that will be launched 
 " b:colortab contains color chars 9 -> red, A -> green...
@@ -76,7 +81,6 @@ catch
  echo 'quit'
 endtry
 
-cal bot#RestoreSearch()
 " Quit
 q
-}}
+{% end code %}

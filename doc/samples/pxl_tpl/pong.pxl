@@ -1,83 +1,87 @@
-"{{
+"{% head %}
   tabnew | call render#Dj_playAnimation(expand('<sfile>'))
   finish
   " License is CC-0 public domain
-"}}
- ('•.•)/       .    .°Q(-_-`)    
- ('•.•)/       .    °`Q(-_-`)    
- ('•.•)/       .   °¯`Q(-_•`)    
-('•.•)/        .  ￮´¯ Q(-_•`)    
-('•.•)/        . ₒ·´¯ Q(-_•`)    
-('•.•)/        .￮.·´  Q(•_•`)    
- ('•.•)/       :·.·   Q(•_•`)    
- ('•…•)/      °:·.    Q(•_•`)    
- ('-…-)/     °¯:·     Q(•_•`)    
- ('•…•)/    ￮´¯.      Q(•_•`)    
- ('•…•)/    ₒ·´ .      Q(•_•`)    
- ('•…•)/   ￮.·  .      Q(•_•`)    
-  ('•…•)O  ￮.·´ .      Q(•_•`)    
-  (´•…•)O°·.   .      \(•_•')   
-  (´•‿•)O´¯°   .      \(•_•')   
-  (´•‿•)O  `￮  .      \(•_•')   
-  (´•‿•)O  `·ₒ .      \(•_•')   
-  (´-‿-)O  `·.￮.      \(•o•')   
-  (´-‿-)O    .´:      \(•o•')   
-  (´•‿•)O     ´:°      \(•o•')   
-  (´•‿•)O      :¯°     \(•o•') 
-  (´•‿•)O      .¯`￮    \(•_•')  
-  (´•‿•)O      .¯`·ₒ   \(•_•')⚡ 
-  (´•‿•)O      . `·.￮ \(•_•')⚡    
-  (´•‿•)O      .   ·.￮Q(•_•')!   
-"{{
+{% end head %}
+ ('•.•)/             .°Q(-_-`)    
+ ('•.•)/             °`Q(-_-`)    
+ ('•.•)/            °¯`Q(-_•`)    
+('•.•)/            ·´¯ Q(-_•`)    
+('•.•)/           ₒ·´  Q(-_•`)    
+('•.•)/          °.·   Q(•_•`)    
+ ('•.•)/        °·.    Q(•_•`)    
+ ('•…•)/       °¯¯·    Q(•_•`)    
+ ('-…-)/      °¯¯      Q(•_•`)    
+ ('•…•)/     ₒ´¯       Q(•_•`)    
+ ('•…•)/    ₒ·´        Q(•_•`)    
+ ('•…•)/   ₒ.·         Q(•_•`)    
+  ('•…•)O ₒ.           Q(•_•`)    
+  (´•…•)O°·.           \(•_•')   
+  (´•‿•)O´¯°           \(•_•')   
+  (´•‿•)O  `ₒ          \(•_•')   
+  (´•‿•)O  `·ₒ        \(•_•')   
+  (´-‿-)O    .´°       \(•o•')   
+  (´-‿-)O     ´¯°      \(•o•')   
+  (´•‿•)O      ¯¯°      \(•o•')   
+  (´•‿•)O       ¯¯°     \(•o•') 
+  (´•‿•)O        ¯`ₒ    \(•_•')  
+  (´•‿•)O         `·ₒ    \(•_•')⚡ 
+  (´•‿•)O           ·.ₒ \(•_•')⚡    
+  (´•‿•)O            .ₒQ(•_•')!   
+{% code %}
  command -buffer BeepA silent! call system('play -n synth .4 sine 220 gain -20 fade 0 .4 .1 &')
  command -buffer BeepB silent! call system('play -n synth .4 sine 238 gain -20 fade 0 .4 .1 &')
  command -buffer BeepC silent! call system('play -n synth .4 square 112 gain -30 fade 0 .4 .1 &')
  syn clear
- "syn match lpart /\%2l.*\%15v/
- "syn match rpart /\%2l\%16v.*/
- syn match lpartt /\%2l\%11v.*\%16v/
- syn match rpartt /\%2l\%17v.*\%22v/
- syn match seppart /\%16v./
- hi seppart guibg=brown guifg=yellow ctermfg=12 ctermbg=3
+ syn match lpartt /\%4l\%11v.*\%17v/
+ syn match rpartt /\%4l\%17v.*\%23v/
  hi lpartt guibg=darkgreen guifg=white ctermfg=15 ctermbg=3
  hi rpartt guibg=black guifg=red ctermfg=9 ctermbg=0
  let l:lines=getline(1,line('$'))
  2,%delete
- resize 3
+ resize 6
  let l:sleep_time=320
  let l:b=''
  let l:la=''
  let l:lb=''
- let l:mut="                                 "
+ let l:mut="                                  "
  redraw
 try
- for l:j in range(40)
+ for l:i in range(50)
     for l:j in range(len(l:lines))
      if len(l:b) | exe 'Beep'.l:b | endif  
      if (l:j == 0)
         let l:b='A'
-        let l:lb="               ←     heeyyyyyyeee"
+        let l:lb="                     heeyyyyyyeee"
         if l:sleep_time>40 | let l:la=l:mut | endif
      elseif (l:j == 12)
         let l:b='B' 
-        let l:la="ayyyyyyye      →                 "
+        let l:la="ayyyyyyye                        "
         if l:sleep_time>40 | let l:lb=l:mut | endif
      elseif  (l:j == 4 || l:j == 22)
         let l:b='C'
         if l:sleep_time>40 | let l:la=l:mut | endif
-        let l:lb="               ".(l:j==4?'↑':'→')."  pok            "
+        let l:lb="               ".' '."  pok            "
      elseif  (l:j == 10 || l:j == 16)
         let l:b='C'
         if l:sleep_time>40 | let l:lb=l:mut | endif
-        let l:la="           pok ".(l:j==10?'←':'↓')."                 "
+        let l:la="           pok ".' '."                 "
      else
         let l:b = ''
      endif
-     call setline(1,[l:la,l:lines[l:j],l:lb])
+     call setline(1,[l:mut,l:la,l:mut,l:lines[l:j],l:mut,l:lb])
      redraw
       if l:sleep_time > 0
          exe 'sleep '.l:sleep_time.'m'
-         let l:sleep_time-=1
+         if l:i<20
+           if l:sleep_time > 240
+             let l:sleep_time-=4
+           elseif l:sleep_time > 30
+             let l:sleep_time-=1
+           endif
+         elseif l:i>30 && l:i<35
+             let l:sleep_time-=1
+         endif
       endif
     let l:ch=getchar(0)
     if l:ch
@@ -92,4 +96,4 @@ catch
  echo 'quit'
 endtry
 q
-"}}
+{% end code %}

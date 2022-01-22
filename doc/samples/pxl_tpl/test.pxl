@@ -1,0 +1,45 @@
+"{% head %}
+unsilent echo "he"
+sleep 1
+
+tabnew
+let b:title = [
+\ '088888888888888880',
+\ '0\Animation demo\0',
+\ '088888888888888880',
+\ ]
+call render#Dj_playAnimation(expand('<sfile>'))
+
+unsilent echo "he ho"
+
+finish
+"{% end head %}
+{% subst %}
+4s/3\\running/{{ '3\\running' {<<} b:data }}/
+s/\*/7\\*\\/
+{% end subst %}
+{# Ignored line comment #}
+{% comment %}
+Ignored block comment
+{% end comment %}
+{{ b:title[0] }}
+{{ b:title[1] }}
+{{ b:title[2] }}
+0.\test\3\running\
+.................
+*      *   *
+   *  *
+  *       *
+{% code %}
+5s/.*/000000000000000000/
+redraw
+echo "test"
+echo render#Dj_getCodeLines()
+echo b:updater
+sleep 1
+let b:data='2\done'
+call render#Dj_update(b:updater)
+redraw
+4s/$/000/
+echo g:render_dj_enable_systematic_postprocessing
+{% end code %}

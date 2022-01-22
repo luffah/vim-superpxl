@@ -1,8 +1,8 @@
-"{{
+"{% head %}
   tabnew | call render#Dj_playAnimation(expand('<sfile>'))
   finish
   " License is CC-0 public domain
-"}}
+"{% end head %}
 --def head--
   BBBBBBB 
  BBBBBBBBB
@@ -54,7 +54,7 @@
 0FFFFFFF0
  0FFFFF0
   00000
-"{{
+"{% code %}
 " TOFIX: collision offset
 " TOFIX: refresh with crono when neck move
 "        --> no problem, shall be declared in l:all_sprites
@@ -314,4 +314,4 @@ endwhile
 " Quit
 q
 " vim : commentstring="%s : comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
-"}}
+{% end code %}

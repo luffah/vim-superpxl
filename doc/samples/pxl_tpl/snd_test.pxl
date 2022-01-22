@@ -1,12 +1,13 @@
-"{{
+"{% head %}
+
   call render#Dj_playAnimation(expand('<sfile>'))
   finish
   " License is CC-0 public domain
   " snd test require sox
   " and speech-dispatcher
-"}}
+"{% end head %}
 0..\SOUND TEST\...
-"{{
+"{% code %}
 command -buffer -nargs=* Snd call system('play -n synth .4 sine '.eval(<q-args>).' gain -10 fade 0 .4 .1 &')
 command -buffer -nargs=* Say call system('spd-say -l '.strpart(expand("$LANG"),0,2).' "'.shellescape(eval(<q-args>)).'" &')
 let l:freq=220
@@ -64,4 +65,4 @@ endwhile
 " Quit
 q
 " vim : commentstring="%s : comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
-"}}
+"{% end code }

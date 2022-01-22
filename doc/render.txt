@@ -1,0 +1,88 @@
+*render.vim*    render template for vim script (similar to Django)
+                                                                    *superpxl*
+License:     AGPLv3 (see https://www.gnu.org/licenses/agpl-3.0.txt)
+Author(s):   luffah (luffah AT runbox com)
+Revision:    2
+Last Change: 2022-01-22
+
+This renderer is actually very minimalist:
+it supports only 1 variable rendering per line.
+
+Other functions here can be enough to build interactives animations.
+
+==============================================================================
+CONTENTS                                                   *superpxl-contents*
+
+1. Functions                                              |superpxl-functions|
+
+==============================================================================
+FUNCTIONS                                                 *superpxl-functions*
+
+render#Dj(pos, tpl_lines)                                       *render#Dj()*
+    Render a list of lines at specified line position,
+    and return an index of lines with code for rendering
+    updates.
+    
+    Details about the returned index:
+     [
+       [ line_nr_to_update, text_begin, computed_part, text_end ]
+       .
+       .
+     ]
+    
+    In template, you can define:
+       {{ simple_value }}
+       {{ init_value {<<} updated_value }}
+    
+    Next blocks and comments will be not be rendered :
+    
+        {# a simple in line comment #}
+        {# ---- #}
+        {% head %}
+        " totally ignored
+        " may contain code to load with :source %
+        {% end head %}
+        {# ------- #}
+        {% comment %}
+        " totally ignored
+        {% end comment %}
+        {# ----- #}
+        {% subst %}
+        "substitution to run before rendering
+        " it can apply to all lines
+        s/x/y/
+        " or specified ones among rendered content
+        2s/x/y/
+        {% end subst %}
+        {# ----- #}
+        {% code %}
+        " vim script to run on the same buffer that rendered content
+        " you can fetch these with render#Dj_getCodeLines()
+        {% end code %}
+        {# ----- #}
+    
+    
+    Example :
+     let l:updater=render#Dj(1,readfile(a:file))
+     sleep 3
+     call render#Dj_update(l:updater)
+
+render#Dj_getCodeLines()                           *render#Dj_getCodeLines()*
+    return all lines that are not rendered (usually code to be executed) 
+
+render#Dj_playAnimation(file)                     *render#Dj_playAnimation()*
+    Helper that setup current window
+    to render animation and execute include code.
+    
+    Some variables and function will be available :
+    - b:updater  which is the index to user with render#Dj_update
+    - b:_script_lines  is the list of lines that are executed
+    - s:_current_process()  is the main function executed, can be used for
+                            reboot
+
+
+render#Dj_update(updater)                                *render#Dj_update()*
+    update current window with the updater index
+    by evaluating the code to render parts
+
+vim:tw=78:ts=8:ft=help:norl:

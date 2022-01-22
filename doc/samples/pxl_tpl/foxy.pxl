@@ -1,6 +1,11 @@
-"{{
+"{% head %}
+  tabnew | call render#Dj_playAnimation(expand('<sfile>'))
+  finish
   " License is CC-0 public domain
-"}}
+
+  " Source this file to play animation
+  " so %
+"{% end head %}
                     00    000                  
                    07400003740                  
                   0797343479740   Pause ?        
@@ -17,7 +22,7 @@
                   004880077300                              
                     000  000                                        
 088777F\{{strftime("Il est %Hh%M; on est le %A %e %B",localtime())}}\.777880
-"{{
+{% code %}
 " Proceed the animation
 let l:tails=[['30 ', '30 ', '0  '],[' 30', '30 ', '0  '],[' 00', '033', '3  '],[' 30', '30 ', '0  ']]
 let l:cnt=0
@@ -40,4 +45,4 @@ catch
  echo 'quit'
 endtry
 q
-"}}
+{% end code %}

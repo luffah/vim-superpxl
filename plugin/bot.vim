@@ -346,7 +346,6 @@ let g:bot_initialization_done=0
 
 let g:bot_initialization_path=s:path.'/doc/samples/pxl_tpl/'
 let g:bot_initialization=get(g:,'bot_initialization','call bot#PreparePics("'.g:bot_initialization_path.'",".pxl")')
-"let g:bot_instruction=get(g:,'bot_instruction','call bot#ShowRandomPic("let b:updater = render#Dj(1,l:lines) | let l:post_process_lines=render#Dj_getIgnoredLines() | let l:lines=[] ")')
 
 let g:bot_instruction=get(g:,'bot_instruction','call bot#ShowRandomPic("rightbelow split | enew | call render#Dj_playAnimation(a:file)")')
   

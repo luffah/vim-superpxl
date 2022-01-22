@@ -29,7 +29,7 @@ CC444446666CCC44444666
   CCC444444.6666CCCCC6666
      CCCCCC44446666CCCCC666
           CCCCCCC44446666
-{{
+{% code %}
   " License is CC-0 public domain
   " Neck : you was hitten by a radioactive substante on your neck which make it longer, and longer,
   " but how many time will you survive in this little house
@@ -86,4 +86,4 @@ q
 " set commentstring="%s
 " set comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
 " vim : commentstring="%s : comments=sO:\"\ -,mO:\"\ \ ,eO:\"\",:\"
-}}
+{% end code %}
